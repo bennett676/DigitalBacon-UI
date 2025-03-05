@@ -9597,7 +9597,6 @@ const DEFAULT_GLASSMORPHISM_MATERIAL = new THREE.MeshPhysicalMaterial({
     roughness: 0.45,
     side: THREE.DoubleSide,
     specularIntensity: 0,
-    transmission: 0.99,
     polygonOffset: true,
     polygonOffsetFactor: 1,
     polygonOffsetUnits: 1,
@@ -11528,13 +11527,13 @@ class GLTFMaterialsTransmissionExtension {
 
 		if ( extension.transmissionFactor !== undefined ) {
 
-			materialParams.transmission = extension.transmissionFactor;
+			// materialParams.transmission = extension.transmissionFactor;
 
 		}
 
 		if ( extension.transmissionTexture !== undefined ) {
 
-			pending.push( parser.assignTexture( materialParams, 'transmissionMap', extension.transmissionTexture ) );
+			// pending.push( parser.assignTexture( materialParams, 'transmissionMap', extension.transmissionTexture ) );
 
 		}
 
