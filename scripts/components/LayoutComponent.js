@@ -25,7 +25,7 @@ const DEFAULT_GLASSMORPHISM_MATERIAL = new THREE.MeshPhysicalMaterial({
     roughness: 0.45,
     side: THREE.DoubleSide,
     specularIntensity: 0,
-    transmission: 0.99,
+    // transmission: 0.99,
     polygonOffset: true,
     polygonOffsetFactor: 1,
     polygonOffsetUnits: 1,

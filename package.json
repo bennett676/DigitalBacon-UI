@@ -35,7 +35,7 @@
   "dependencies": {
     "nipplejs": "^0.10.1",
     "runes2": "^1.1.4",
-    "three": "^0.171.0",
+    "three": "npm:super-three@0.171.0",
     "three-mesh-bvh": "^0.8.3",
     "troika-three-text": "^0.52.0"
   }
