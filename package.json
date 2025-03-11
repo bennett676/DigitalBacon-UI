@@ -3,7 +3,7 @@
   "version": "0.2.1",
   "type": "module",
   "description": "UI library for three.js that supports touch screen, mouse, and WebXR hardware",
-  "main": "/build/DigitalBacon-UI.min.js",
+  "main": "/build/DigitalBacon-UI.js",
   "license": "MPL-2.0",
   "repository": {
     "type": "git",
