@@ -15986,8 +15986,15 @@ class InputHandler {
             if(this._xrControllerParent) {
                 this._xrControllerParent.add(
                     xrInputDevice.controllers.targetRay);
-                xrInputDevice.controllers;
-                if(inputSource.gripSpace) ;
+                let controllers = xrInputDevice.controllers;
+                if(inputSource.gripSpace) {
+                    this._xrControllerParent.add(controllers.grip);
+                    controllers.grip.add(xrInputDevice.model);
+                    controllers.grip.model = xrInputDevice.model;
+                } else {
+                    controllers.targetRay.add(xrInputDevice.model);
+                    controllers.targetRay.model = xrInputDevice.model;
+                }
             }
         }
     }
