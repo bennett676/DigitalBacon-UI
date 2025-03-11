@@ -91,9 +91,8 @@ class PointerInteractableHandler extends InteractableHandler {
             return model?.motionController?.isPinching === true;
         } else {
             let gamepad = InputHandler.getXRGamepad(handedness);
-            console.log("controller pressed");
             // Ensure gamepad and buttons exist and buttons has at least one element
-            return gamepad?.buttons?.length > 0 && gamepad.buttons[0]?.pressed === true;
+            return gamepad?.buttons?.length > 0 && gamepad.buttons[0]?.pressed === true; // gb
         }
     }
 

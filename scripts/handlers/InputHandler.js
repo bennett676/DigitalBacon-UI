@@ -164,11 +164,11 @@ class InputHandler {
             xrInputDevice.inputSource = inputSource;
             if(!xrInputDevice.model) {
                 if(type == XRInputDeviceTypes.HAND) {
-                    xrInputDevice.model = handModelFactory
-                        .createHandModel(inputSource);
+                    // xrInputDevice.model = handModelFactory
+                    //     .createHandModel(inputSource);
                 } else if(type == XRInputDeviceTypes.CONTROLLER) {
-                    xrInputDevice.model = controllerModelFactory
-                        .createControllerModel(inputSource, 'mesh');
+                    // xrInputDevice.model = controllerModelFactory
+                    //     .createControllerModel(inputSource, 'mesh');
                 }
             } else {
                 let motionController = xrInputDevice.model.motionController;
