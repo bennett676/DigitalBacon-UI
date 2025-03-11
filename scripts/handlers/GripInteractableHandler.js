@@ -45,7 +45,7 @@ class GripInteractableHandler extends InteractableHandler {
             return model?.motionController?.isGrabbing === true;
         } else {
             let gamepad = InputHandler.getXRGamepad(handedness);
-    
+            console.log("grip pressed");
             // Ensure gamepad exists and has at least two buttons
             return gamepad?.buttons?.length > 1 && gamepad.buttons[1]?.pressed === true;
         }

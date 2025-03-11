@@ -16696,7 +16696,7 @@ class PointerInteractableHandler extends InteractableHandler {
             return model?.motionController?.isPinching === true;
         } else {
             let gamepad = inputHandler.getXRGamepad(handedness);
-            
+            console.log("controller pressed");
             // Ensure gamepad and buttons exist and buttons has at least one element
             return gamepad?.buttons?.length > 0 && gamepad.buttons[0]?.pressed === true;
         }
@@ -27165,7 +27165,7 @@ class GripInteractableHandler extends InteractableHandler {
             return model?.motionController?.isGrabbing === true;
         } else {
             let gamepad = inputHandler.getXRGamepad(handedness);
-    
+            console.log("grip pressed");
             // Ensure gamepad exists and has at least two buttons
             return gamepad?.buttons?.length > 1 && gamepad.buttons[1]?.pressed === true;
         }
