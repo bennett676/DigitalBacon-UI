@@ -76,13 +76,24 @@ class PointerInteractableHandler extends InteractableHandler {
         return xrController.raycaster;
     }
 
+    // _isXRControllerPressed(type, handedness) {
+    //     if(type == XRInputDeviceTypes.HAND) {
+    //         let model = InputHandler.getXRControllerModel(type, handedness);
+    //         return model?.motionController?.isPinching == true;
+    //     } else {
+    //         let gamepad = InputHandler.getXRGamepad(handedness);
+    //         return gamepad?.buttons != null && gamepad.buttons[0].pressed;
+    //     }
+    // }
     _isXRControllerPressed(type, handedness) {
-        if(type == XRInputDeviceTypes.HAND) {
+        if (type == XRInputDeviceTypes.HAND) {
             let model = InputHandler.getXRControllerModel(type, handedness);
-            return model?.motionController?.isPinching == true;
+            return model?.motionController?.isPinching === true;
         } else {
             let gamepad = InputHandler.getXRGamepad(handedness);
-            return gamepad?.buttons != null && gamepad.buttons[0].pressed;
+            
+            // Ensure gamepad and buttons exist and buttons has at least one element
+            return gamepad?.buttons?.length > 0 && gamepad.buttons[0]?.pressed === true;
         }
     }
 

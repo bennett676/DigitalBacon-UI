@@ -16681,13 +16681,24 @@ class PointerInteractableHandler extends InteractableHandler {
         return xrController.raycaster;
     }
 
+    // _isXRControllerPressed(type, handedness) {
+    //     if(type == XRInputDeviceTypes.HAND) {
+    //         let model = InputHandler.getXRControllerModel(type, handedness);
+    //         return model?.motionController?.isPinching == true;
+    //     } else {
+    //         let gamepad = InputHandler.getXRGamepad(handedness);
+    //         return gamepad?.buttons != null && gamepad.buttons[0].pressed;
+    //     }
+    // }
     _isXRControllerPressed(type, handedness) {
-        if(type == XRInputDeviceTypes.HAND) {
+        if (type == XRInputDeviceTypes.HAND) {
             let model = inputHandler.getXRControllerModel(type, handedness);
-            return model?.motionController?.isPinching == true;
+            return model?.motionController?.isPinching === true;
         } else {
             let gamepad = inputHandler.getXRGamepad(handedness);
-            return gamepad?.buttons != null && gamepad.buttons[0].pressed;
+            
+            // Ensure gamepad and buttons exist and buttons has at least one element
+            return gamepad?.buttons?.length > 0 && gamepad.buttons[0]?.pressed === true;
         }
     }
 
@@ -27138,15 +27149,28 @@ class GripInteractableHandler extends InteractableHandler {
         return this._sphere;
     }
 
+    // _isXRControllerPressed(type, handedness) {
+    //     if(type == XRInputDeviceTypes.HAND) {
+    //         let model = InputHandler.getXRControllerModel(type, handedness);
+    //         return model?.motionController?.isGrabbing == true;
+    //     } else {
+    //         let gamepad = InputHandler.getXRGamepad(handedness);
+    //         return gamepad?.buttons != null && gamepad.buttons[1].pressed;
+    //     }
+    // }
+
     _isXRControllerPressed(type, handedness) {
-        if(type == XRInputDeviceTypes.HAND) {
+        if (type === XRInputDeviceTypes.HAND) {
             let model = inputHandler.getXRControllerModel(type, handedness);
-            return model?.motionController?.isGrabbing == true;
+            return model?.motionController?.isGrabbing === true;
         } else {
             let gamepad = inputHandler.getXRGamepad(handedness);
-            return gamepad?.buttons != null && gamepad.buttons[1].pressed;
+    
+            // Ensure gamepad exists and has at least two buttons
+            return gamepad?.buttons?.length > 1 && gamepad.buttons[1]?.pressed === true;
         }
     }
+    
 
     _scopeInteractables(controller, interactables) {
         let boundingSphere = controller['boundingSphere'];
