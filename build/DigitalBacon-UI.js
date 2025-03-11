@@ -15820,211 +15820,6 @@ class XRControllerModelFactory {
     }
 }
 
-const DEFAULT_HAND_PROFILE_PATH = 'https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles/generic-hand/';
-const CONTACT_DISTANCE = 0.015;
-const SEPARATE_DISTANCE = 0.025;
-
-class XRHandMeshModel {
-
-    constructor( handModel, xrInputSource, path, handedness, loader = null ) {
-
-        this.xrInputSource = xrInputSource;
-        this.handModel = handModel;
-
-        this.bones = [];
-        this._fingertips = [];
-        this._phalanxProximals = [];
-        this._palmTriangleVectors = [new Vector3(),new Vector3(),new Vector3()];
-        this._palmTriangleBones = [];
-        this._palmTriangle = new Triangle();
-        this.isPinching = false;
-        this.isGrabbing = false;
-        this.palmDirection = new Vector3();
-
-        if ( loader === null ) {
-
-            loader = new GLTFLoader();
-            loader.setPath( path || DEFAULT_HAND_PROFILE_PATH );
-
-        }
-
-        loader.load( `${handedness}.glb`, gltf => {
-
-            const object = gltf.scene.children[ 0 ];
-            this.handModel.add( object );
-            this.assetUrl = DEFAULT_HAND_PROFILE_PATH + `${handedness}.glb`;
-
-            const mesh = object.getObjectByProperty( 'type', 'SkinnedMesh' );
-            mesh.frustumCulled = false;
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-
-            const joints = [
-                'wrist',
-                'thumb-metacarpal',
-                'thumb-phalanx-proximal',
-                'thumb-phalanx-distal',
-                'thumb-tip',
-                'index-finger-metacarpal',
-                'index-finger-phalanx-proximal',
-                'index-finger-phalanx-intermediate',
-                'index-finger-phalanx-distal',
-                'index-finger-tip',
-                'middle-finger-metacarpal',
-                'middle-finger-phalanx-proximal',
-                'middle-finger-phalanx-intermediate',
-                'middle-finger-phalanx-distal',
-                'middle-finger-tip',
-                'ring-finger-metacarpal',
-                'ring-finger-phalanx-proximal',
-                'ring-finger-phalanx-intermediate',
-                'ring-finger-phalanx-distal',
-                'ring-finger-tip',
-                'pinky-finger-metacarpal',
-                'pinky-finger-phalanx-proximal',
-                'pinky-finger-phalanx-intermediate',
-                'pinky-finger-phalanx-distal',
-                'pinky-finger-tip',
-            ];
-
-            joints.forEach( jointName => {
-
-                const bone = object.getObjectByName( jointName );
-
-                if ( bone !== undefined ) {
-
-                    bone.jointName = jointName;
-
-                } else {
-
-                    console.warn( `Couldn't find ${jointName} in ${handedness} hand mesh` );
-
-                }
-
-                this.bones.push( bone );
-
-            } );
-            for(let i of [4, 9, 14, 19, 24]) {
-                this._fingertips.push(this.bones[i]);
-            }
-            for(let i of [2, 6, 11, 16, 21]) {
-                this._phalanxProximals.push(this.bones[i]);
-            }
-            this._palmTriangleBones.push(this.bones[5]);
-            this._palmTriangleBones.push(this.bones[6]);
-            this._palmTriangleBones.push(this.bones[10]);
-            if(handedness == 'left') this._palmTriangleBones.reverse();
-            setupBVHForComplexObject(handModel);
-        } );
-
-    }
-
-    _updateGestures() {
-        let wrist = this.bones[0];
-        if(!wrist) return;
-        let grabbing = true;
-        let wristPosition = wrist.position;
-        for(let i = 2; i < 5; i++) {
-            let fingertipPosition = this._fingertips[i].position;
-            let knucklePosition = this._phalanxProximals[i].position;
-            let tipDist = fingertipPosition.distanceTo(wristPosition);
-            let knuckleDist = knucklePosition.distanceTo(wristPosition);
-            if(tipDist > knuckleDist) {
-                grabbing = false;
-                break;
-            }
-        }
-        this.isGrabbing = grabbing;
-        let thumbTip = this.bones[4];
-        let indexTip = this.bones[9];
-        let thumbIndexDist = thumbTip.position.distanceTo(indexTip.position);
-        if(this.isPinching) {
-            if(thumbIndexDist > SEPARATE_DISTANCE)
-                this.isPinching = false;
-        } else if(thumbIndexDist < CONTACT_DISTANCE) {
-            this.isPinching = true;
-        }
-        for(let i = 0; i < 3; i++) {
-            this._palmTriangleBones[i].getWorldPosition(
-                this._palmTriangleVectors[i]);
-        }
-        this._palmTriangle.setFromPointsAndIndices(this._palmTriangleVectors, 0,
-            1, 2);
-        this._palmTriangle.getNormal(this.palmDirection);
-    }
-
-    updateMesh(frame, referenceSpace, parentMatrix) {
-        if(!parentMatrix) return;
-        parentMatrix = parentMatrix.clone().invert();
-        let i = 0;
-        for(let joint of this.xrInputSource.hand.values()) {
-            let bone = this.bones[i];
-            let jointPose = frame.getJointPose(joint, referenceSpace);
-            if(bone && jointPose) {
-                bone.matrix.fromArray(jointPose.transform.matrix)
-                    .premultiply(parentMatrix);
-                bone.matrix.decompose(bone.position, bone.rotation, bone.scale);
-            }
-            i++;
-        }
-        this._updateGestures();
-    }
-
-}
-
-class XRHandModel extends Object3D {
-
-    constructor( controller ) {
-
-        super();
-
-        this.controller = controller;
-        this.motionController = null;
-        this.envMap = null;
-
-        this.mesh = null;
-
-    }
-
-}
-
-class XRHandModelFactory {
-
-    constructor() {
-
-        this.path = null;
-
-    }
-
-    setPath( path ) {
-
-        this.path = path;
-
-        return this;
-
-    }
-
-    createHandModel( xrInputDevice ) {
-
-        let xrInputSource = xrInputDevice;
-
-        const handModel = new XRHandModel();
-
-        if ( xrInputSource.hand && ! handModel.motionController ) {
-
-            handModel.xrInputSource = xrInputSource;
-
-            handModel.motionController = new XRHandMeshModel(handModel,
-                xrInputSource, this.path, xrInputSource.handedness);
-
-        }
-
-        return handModel;
-
-    }
-
-}
-
 /*
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16033,8 +15828,7 @@ class XRHandModelFactory {
 
 
 /* global nipplejs */
-const controllerModelFactory = new XRControllerModelFactory();
-const handModelFactory = new XRHandModelFactory();
+new XRControllerModelFactory();
 
 //Provides Polling for XR Input Sources, Keyboard, or Touch Screen inputs
 class InputHandler {
@@ -16183,13 +15977,7 @@ class InputHandler {
             }
             xrInputDevice.inputSource = inputSource;
             if(!xrInputDevice.model) {
-                if(type == XRInputDeviceTypes.HAND) {
-                    xrInputDevice.model = handModelFactory
-                        .createHandModel(inputSource);
-                } else if(type == XRInputDeviceTypes.CONTROLLER) {
-                    xrInputDevice.model = controllerModelFactory
-                        .createControllerModel(inputSource, 'mesh');
-                }
+                if(type == XRInputDeviceTypes.HAND) ; else if(type == XRInputDeviceTypes.CONTROLLER) ;
             } else {
                 let motionController = xrInputDevice.model.motionController;
                 if(motionController)
@@ -16198,15 +15986,8 @@ class InputHandler {
             if(this._xrControllerParent) {
                 this._xrControllerParent.add(
                     xrInputDevice.controllers.targetRay);
-                let controllers = xrInputDevice.controllers;
-                if(inputSource.gripSpace) {
-                    this._xrControllerParent.add(controllers.grip);
-                    controllers.grip.add(xrInputDevice.model);
-                    controllers.grip.model = xrInputDevice.model;
-                } else {
-                    controllers.targetRay.add(xrInputDevice.model);
-                    controllers.targetRay.model = xrInputDevice.model;
-                }
+                xrInputDevice.controllers;
+                if(inputSource.gripSpace) ;
             }
         }
     }
@@ -16696,9 +16477,8 @@ class PointerInteractableHandler extends InteractableHandler {
             return model?.motionController?.isPinching === true;
         } else {
             let gamepad = inputHandler.getXRGamepad(handedness);
-            console.log("controller pressed");
             // Ensure gamepad and buttons exist and buttons has at least one element
-            return gamepad?.buttons?.length > 0 && gamepad.buttons[0]?.pressed === true;
+            return gamepad?.buttons?.length > 0 && gamepad.buttons[0]?.pressed === true; // gb
         }
     }
 
@@ -27165,9 +26945,8 @@ class GripInteractableHandler extends InteractableHandler {
             return model?.motionController?.isGrabbing === true;
         } else {
             let gamepad = inputHandler.getXRGamepad(handedness);
-            console.log("grip pressed");
             // Ensure gamepad exists and has at least two buttons
-            return gamepad?.buttons?.length > 1 && gamepad.buttons[1]?.pressed === true;
+            return gamepad?.buttons?.length > 1 && gamepad.buttons[1]?.pressed === true; // gb
         }
     }
     
